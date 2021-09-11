@@ -1,6 +1,10 @@
 import pandas as pd
 
-SIMPLE_SELECT_QUERY = """SELECT * FROM operation"""
+from models.db_models import Operation
+from settings.db_connection import Session
+
+SIMPLE_SELECT_QUERY = """SELECT {fields} FROM {table1}"""
+JOIN = """JOIN {table2} on {table1}.{join_field1}={table2}.{join_field2}"""
 
 
 class DBQuery:
@@ -9,10 +13,8 @@ class DBQuery:
         self.query = None
         self.connection = connection
 
-    def select(self, fields, table):
-        self.query = SIMPLE_SELECT_QUERY
-        # print(kwargs['fields'])
-        # self.query.format(fields=fields, table=table)
+    def select(self, **kwargs):
+        self.query = SIMPLE_SELECT_QUERY.format(fields=kwargs['fields'], table1=kwargs['table'])
 
     def select_all_fields(self, table: str = None):
         self.select(fields='*', table=table)
@@ -21,3 +23,12 @@ class DBQuery:
     def select_several_fields(self, table: str = None, fields: list[str] = None):
         self.select(fields=','.join(fields), table=table)
         return pd.read_sql(self.query, self.connection)
+
+class InserWhitsSQLAlchemy:
+
+    def add_operation(self, operation):
+        try:
+            db_session = Session()
+            db_session.add(operation)
+        except Exception as e:
+            raise e

@@ -1,8 +1,10 @@
 import sqlite3
+import datetime
 import tkinter as tk
 from tkinter import ttk
 
-from scripts.db_scrips import DBQuery
+from scripts.db_scrips import DBQuery, InserWhitsSQLAlchemy
+from models.db_models import Operation
 from settings.config_scrips import Config
 from settings.db_connection import connection
 
@@ -61,20 +63,24 @@ class Main(tk.Frame):
         self.tree.configure(yscrollcommand=scroll.set)
 
     def records(self, description, costs, total):
-        self.db.insert_data(description, costs, total)
+        item = Operation(name=description, type=costs, date=datetime.date.today())
+        InserWhitsSQLAlchemy().add_operation(item)
         self.view_records()
 
     def update_record(self, description, costs, total):
+
         self.db.c.execute('''UPDATE finance SET description=?, costs=?, total=? WHERE ID=?''',
                           (description, costs, total, self.tree.set(self.tree.selection()[0], '#1')))
         self.db.conn.commit()
         self.view_records()
 
     def view_records(self):
-        self.db.c.execute('''SELECT * FROM finance''')
         [self.tree.delete(i) for i in self.tree.get_children()]
-        [self.tree.insert('', 'end', values=row) for row in DBQuery(connection).select_all_fields('operation').values.tolist()
-         ]
+
+        [
+            self.tree.insert('', 'end', values=row)
+            for row in DBQuery(connection).select_all_fields('operation').values.tolist()
+        ]
 
     def delete_records(self):
         for selection_item in self.tree.selection():
