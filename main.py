@@ -1,7 +1,10 @@
+import sqlite3
 import tkinter as tk
 from tkinter import ttk
-import sqlite3
 
+from scripts.db_scrips import DBQuery
+from settings.config_scrips import Config
+from settings.db_connection import connection
 
 class Main(tk.Frame):
     def __init__(self, root):
@@ -70,7 +73,8 @@ class Main(tk.Frame):
     def view_records(self):
         self.db.c.execute('''SELECT * FROM finance''')
         [self.tree.delete(i) for i in self.tree.get_children()]
-        [self.tree.insert('', 'end', values=row) for row in self.db.c.fetchall()]
+        [self.tree.insert('', 'end', values=row) for row in DBQuery(connection).select_all_fields('operation').values.tolist()
+         ]
 
     def delete_records(self):
         for selection_item in self.tree.selection():
